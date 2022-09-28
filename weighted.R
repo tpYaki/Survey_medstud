@@ -29,30 +29,35 @@ db$Q6[which(db$Q6==4)]<-"villages & towns"
 db$Q6[which(db$Q6==5)]<-"rural area"
 
 
-ggplot(data = db,aes(axis1=Q5,axis2 = Q3, axis3 = Q1,axis4 =Q6))  +
-  geom_alluvium(aes(fill=Q6)) +
-  scale_x_discrete(limits = c("Age","Biological Sex","Education","Hometown"), expand = c(.1, .1)) +
-  geom_stratum(alpha=0.6) +
-  theme_minimal()
 
-#knowledge scoring
-dbknow<-db[c(1,2,9,10,114,115,116,117)]
+######---demograph----#########
+# ggplot(data = db,aes(axis1=Q5,axis2 = Q3, axis3 = Q1,axis4 =Q6))  +
+#   geom_alluvium(aes(fill=Q6)) +
+#   scale_x_discrete(limits = c("Age","Biological Sex","Education","Hometown"), expand = c(.1, .1)) +
+#   geom_stratum(alpha=0.6) +
+#   theme_minimal()
 
+
+#########-----knowledge量化-----###########
 library(ggplot2)
 library(ggfortify)
 library(devtools)
-dbknow$edu<-dbknow$Q1
-dbknow$edu<-gsub("nursing 1st","nursing",dbknow$edu)
-dbknow$edu<-gsub("nursing 2nd","nursing",dbknow$edu)
-dbknow$edu<-gsub("nursing 3rd","nursing",dbknow$edu)
-dbknow$edu<-gsub("nursing 4th","nursing",dbknow$edu)
-dbknow$edu<-gsub("8yrs MD intern","8yrs MD",dbknow$edu)
-dbknow$edu<-gsub("8yrs MD med basics","8yrs MD",dbknow$edu)
-dbknow$edu<-gsub("8yrs MD pre-med","8yrs MD",dbknow$edu)
+#knowledge scoring
+# dbknow<-db[c(1,2,9,10,114,115,116,117)]
+# 
+# dbknow$edu<-dbknow$Q1
+# dbknow$edu<-gsub("nursing 1st","nursing",dbknow$edu)
+# dbknow$edu<-gsub("nursing 2nd","nursing",dbknow$edu)
+# dbknow$edu<-gsub("nursing 3rd","nursing",dbknow$edu)
+# dbknow$edu<-gsub("nursing 4th","nursing",dbknow$edu)
+# dbknow$edu<-gsub("8yrs MD intern","8yrs MD",dbknow$edu)
+# dbknow$edu<-gsub("8yrs MD med basics","8yrs MD",dbknow$edu)
+# dbknow$edu<-gsub("8yrs MD pre-med","8yrs MD",dbknow$edu)
 
-
+######云图#####
 autoplot(prcomp( dbknow[,5:(ncol(dbknow)-1)]), data=dbknow,colour = 'edu',label=FALSE,label.size=2,frame=TRUE,frame.type="norm")+theme_bw()
 
+#########前面的无关热图###########
 library(stringr)
 library(pheatmap)
 library(RColorBrewer)
@@ -83,29 +88,7 @@ ann_colors = list(
 pheatmap(dbedu2,cluster_col=T,scale="none",show_colnames=F,show_rownames=T,annotation_colors = ann_colors,cluster_row=F,color = colorRampPalette(c("tan", "white","black"))(100),cellwidth=1,cellheight=10,display_numbers = F,annotation_col = annotation) 
 
 
-
-#Correlation
-#dbknow3<-dbknow[c(5,6,7,8)]
-#M=cor(dbknow3,method = "spearman")
-#pheatmap(M,cluster_col=T,cluster_row=T,color = colorRampPalette(c("dodgerblue", "white", "tomato"))(100),cellwidth=20,cellheight=20,display_numbers = T) 
-#dbknow4<-db[-c(1,2,9,10)]
-#M=cor(dbknow4,method = "spearman")
-#pheatmap(M,cluster_col=T,cluster_row=T,color = colorRampPalette(c("dodgerblue", "white", "tomato"))(100),cellwidth=5,cellheight=5,display_numbers = F,fontsize = 5,border=F) 
-
-#library(psych)
-#res<-corr.test(dbknow4, dbknow4, use = "pairwise",method="spearman",adjust="bonferroni", alpha=.05)
-#annotation2<-read.csv("KAPgrouping.csv",header=F)
-#colnames(annotation2)<-c("KAP_group","Question")
-#row.names(annotation2)<-annotation2$Question
-#annotation2$Question<-NULL
-#table(annotation2$KAP_group)
-#ann_colors2 = list(
-#  KAP_group=c('belief'=brewer.pal(5,"Set1")[1],'demographic'=brewer.pal(5,"Set1")[2],'knowledge'=brewer.pal(5,"Set1")[3],'medicine'=brewer.pal(5,"Set1")[4],'practice'=brewer.pal(5,"Set1")[5])
-#)
-#pheatmap(res$r,cluster_rows = T,cluster_col=T,display_numbers = matrix(ifelse(res$p <= 0.01, "**", ifelse(res$p <= 0.05 ,"*"," ")), nrow(res$p)), color = colorRampPalette(c("dodgerblue", "white", "tomato"))(100),cellwidth=5,cellheight=5,fontsize = 5,border=F,annotation_colors = ann_colors2,annotation_col = annotation2,annotation_row=annotation2)
-#write.csv(res$r,"correlation.csv")
-#write.csv(res$p,"pvalue.csv")
-
+########加权###########
 #install.packages('wCorr')
 library(wCorr)
 library(psych)
@@ -130,25 +113,35 @@ dbknow4new<-dbknow4[,c("Q4","Q8","Q9","Q10","Q12","Q13","Q15","Q17","Q18","Q21",
 column27 = c("Q4","Q8","Q9","Q10","Q12","Q13","Q15","Q17","Q18","Q21","Q24","Q25","Q27","Q35","Q41","Q42","Q43","Q44","Q47","Q48","Q37","Q39","Q36","Q40","Q50","Q30","Q31")
 for (k in column27){for (j in column27){
       print(j)
-      #if (k!=j){
+      if (k!=j){
       res_temp = weightedCorr(x=as.numeric(unlist(dbknow4new[k])),y = as.numeric(unlist(dbknow4new[j])), w=weight,method = "spearman")
       res_r[k,j] = res_temp
       pt = pt(spearmentt(res_temp,472),470)
-      res_test[k,j] =p.adjust((1-abs(pt))/2,method ='bonferroni',n = 702)
-    #}
+      res_test[k,j] =p.adjust((1-abs(pt))/2,method ='bonferroni',n=472)
+      }
+      if (k==j){
+        res_temp = weightedCorr(x=as.numeric(unlist(dbknow4new[k])),y = as.numeric(unlist(dbknow4new[j])), w=weight,method = "spearman")
+        res_r[k,j] = res_temp
+        res_test[k,j] =0
+      }
   }
 }
 
 
 ##res2<-corr.test(dbknow4new, dbknow4new, use = "pairwise",method="spearman",adjust="bonferroni", alpha=.05)
-
+#####分组注释文件读取######
 annotation2<-read.csv("KAPgrouping2.csv",header=F)
 colnames(annotation2)<-c("KAP_group","Question")
+
+####belief换成attitude#####
+annotation2$KAP_group<-gsub("belief","attitude",annotation2$KAP_group)
+
+######分组注释######
 row.names(annotation2)<-annotation2$Question
 annotation2$Question<-NULL
 table(annotation2$KAP_group)
 ann_colors2 = list(
-  KAP_group=c('belief'=brewer.pal(5,"Set1")[1],'education'=brewer.pal(5,"Set1")[2],'knowledge'=brewer.pal(5,"Set1")[3],'medicine'=brewer.pal(5,"Set1")[4],'practice'=brewer.pal(5,"Set1")[5])
+  KAP_group=c('attitude'=brewer.pal(5,"Set1")[1],'education'=brewer.pal(5,"Set1")[2],'knowledge'=brewer.pal(5,"Set1")[3],'medicine'=brewer.pal(5,"Set1")[4],'practice'=brewer.pal(5,"Set1")[5])
 )
 bk <- c(seq(-0.3,-0.01,by=0.001),seq(0,0.3,by=0.001))
 #matrixdisplay = data.frame()
@@ -156,8 +149,13 @@ bk <- c(seq(-0.3,-0.01,by=0.001),seq(0,0.3,by=0.001))
 #  {if(res_test[m,n] <= 0.05) {matrixdisplay[m,n]="*"}}}}
 #matrixdisplay = as.matrix(matrixdisplay)
 #pheatmap(res2$r,breaks=bk,cluster_rows = T,cluster_col=T,display_numbers = matrix(ifelse(res2$p <= 0.01, "**", ifelse(res2$p <= 0.05 ,"*"," ")), nrow(res2$p)), color = c(colorRampPalette(colors = c("dodgerblue","white"))(392),colorRampPalette(colors = c("white","tomato"))(1000)) ,cellwidth=13,cellheight=13,fontsize =13,border=F,annotation_colors = ann_colors2,annotation_col = annotation2,annotation_row=annotation2)
-heatmap = pheatmap(res_r,breaks=bk,cluster_rows = T,cluster_col=T,display_numbers =matrix(ifelse(res_test <= 0.0001, "△", ifelse(res_test <= 0.001 ,"***",ifelse(res_test<= 0.01 ,"**",ifelse(res_test<= 0.05 ,"*"," ")))), nrow(res_test)), color = c(colorRampPalette(colors = c("dodgerblue","white"))(392),colorRampPalette(colors = c("white","tomato"))(200)) ,cellwidth=13,cellheight=13,fontsize =13,annotation_colors = ann_colors2,annotation_col = annotation2,annotation_row=annotation2)
 
+
+#######加权热图和储存######
+heatmap = pheatmap(res_r,breaks=bk,cluster_rows = T,cluster_col=T,display_numbers =matrix(ifelse(res_test <= 0.0001, "×", ifelse(res_test <= 0.001 ,"***",ifelse(res_test<= 0.01 ,"**",ifelse(res_test<= 0.05 ,"*"," ")))), nrow(res_test)), color = c(colorRampPalette(colors = c("dodgerblue","white"))(392),colorRampPalette(colors = c("white","tomato"))(200)) ,cellwidth=13,cellheight=13,fontsize =13,annotation_colors = ann_colors2,annotation_col = annotation2,annotation_row=annotation2)
+
+
+######存图#######
 save_pheatmap_png <- function(x, filename, width=1400, height=1200, res = 150) {
   png(filename, width = width, height = height, res = res)
   grid::grid.newpage()
